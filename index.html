@@ -1,0 +1,200 @@
+<html>
+  <head> </head>
+  <body>
+    <div style="overflow: hidden">
+      <button id="copySummonBtn" disabled>Copy summon commands</button>
+      <button id="copyModifyBtn" disabled>Copy data modify commands</button>
+    </div>
+    <div style="margin-top: 1rem">
+      <label for="scaleText">Scale (blocks/pixel): </label>
+      <input type="text" id="scaleText" value="0.005" />
+      <label for="opacityText">Opacity (0~255): </label>
+      <input type="text" id="opacityText" value="255" />
+    </div>
+    <div style="margin-top: 1rem">
+      Rotation
+      <br />
+      <label for="rotationXText">Axis X</label>
+      <input type="text" id="rotationXText" value="0" />
+      <label for="rotationYText">Y</label>
+      <input type="text" id="rotationYText" value="0" />
+      <label for="rotationZText">Z</label>
+      <input type="text" id="rotationZText" value="1" />
+      <br />
+      <label for="angleText">Angle (in degrees)</label>
+      <input type="text" id="angleText" value="0" />
+      <input type="text" id="tagPrefixText" value="image_dp_" />
+    </div>
+    <div style="margin-top: 1rem">
+      <input type="file" id="imageFile" />
+      <button id="generateBtn">Generate</button>
+    </div>
+    <div style="margin-top: 1rem">
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <script>
+      const imageFile = document.getElementById("imageFile");
+      const copySummonBtn = document.getElementById("copySummonBtn");
+      const copyModifyBtn = document.getElementById("copyModifyBtn");
+      const scaleText = document.getElementById("scaleText");
+      const opacityText = document.getElementById("opacityText");
+      const rotationXText = document.getElementById("rotationXText");
+      const rotationYText = document.getElementById("rotationYText");
+      const rotationZText = document.getElementById("rotationZText");
+      const angleText = document.getElementById("angleText");
+      const tagPrefixText = document.getElementById("tagPrefixText");
+      const generateBtn = document.getElementById("generateBtn");
+
+      var textComponents = null;
+      var isOddWidth = false;
+      var summonText = "";
+      var modifyText = "";
+
+      imageFile.onchange = function (e) {
+        const image = new Image();
+        image.onload = drawAndCreateTextComponents;
+        image.onerror = onLoadFailed;
+        image.src = URL.createObjectURL(this.files[0]);
+      };
+
+      copySummonBtn.onclick = function (e) {
+        navigator.clipboard.writeText(summonText);
+        alert("Copied " + summonText.length + " characters!");
+      };
+
+      copyModifyBtn.onclick = function (e) {
+        navigator.clipboard.writeText(modifyText);
+        alert("Copied " + modifyText.length + " characters!");
+      };
+
+      generateBtn.onclick = function (e) {
+        copySummonBtn.disabled = true;
+        copyModifyBtn.disabled = true;
+
+        let scale = scaleText.value;
+        let opacity = opacityText.value;
+        let axisX = rotationXText.value;
+        let axisY = rotationYText.value;
+        let axisZ = rotationZText.value;
+        let angle = angleText.value * 0.0174533;
+        let tagPrefix = tagPrefixText.value;
+
+        if (isOddWidth) {
+          summonText = `summon text_display ~ ~ ~ {Tags:  ["${tagPrefix}0"], line_width: 100000, text_opacity: ${opacity}, alignment: "center", background: 0, transformation:  {right_rotation: {angle: 0f, axis: [0f, 0f, 1f]}, left_rotation:  {angle: ${angle}f, axis: [${axisX}f, ${axisY}f, ${axisZ}f]}, scale: [${
+            80 * scale
+          }f, ${8 * scale}f, 1f], translation: [0f, 0f, 0f]}}\n`;
+          summonText += `summon text_display ~ ~ ~ {Tags: ["${tagPrefix}1"], line_width: 100000, text_opacity: ${opacity}, alignment: "center", background: 0, transformation: {right_rotation: {angle: 0f, axis: [0f, 0f, 1f]}, left_rotation: {angle: ${angle}f, axis: [${axisX}f, ${axisY}f, ${axisZ}f]}, scale: [${
+            80 * scale
+          }f, ${8 * scale}f, 1f], translation: [0f, 0f, 0f]}}\n`;
+          summonText += `summon text_display ~ ~ ~ {Tags: ["${tagPrefix}2"], line_width: 100000, text_opacity: ${opacity}, alignment: "center", background: 0, transformation: {right_rotation: {angle: 0f, axis: [0f, 0f, 1f]}, left_rotation: {angle: ${angle}f, axis: [${axisX}f, ${axisY}f, ${axisZ}f]}, scale: [${
+            80 * scale
+          }f, ${8 * scale}f, 1f], translation: [0f, ${scale}f, 0f]}}\n`;
+          summonText += `summon text_display ~ ~ ~ {Tags: ["${tagPrefix}3"], line_width: 100000, text_opacity: ${opacity}, alignment: "center", background: 0, transformation: {right_rotation: {angle: 0f, axis: [0f, 0f, 1f]}, left_rotation: {angle: ${angle}f, axis: [${axisX}f, ${axisY}f, ${axisZ}f]}, scale: [${
+            80 * scale
+          }f, ${8 * scale}f, 1f], translation: [0f, ${scale}f, 0f]}}\n`;
+        } else {
+          summonText = `summon text_display ~ ~ ~ {Tags:  ["${tagPrefix}0"], line_width: 100000, text_opacity: ${opacity}, alignment: "center", background: 0, transformation:  {right_rotation: {angle: 0f, axis: [0f, 0f, 1f]}, left_rotation:  {angle: ${angle}f, axis: [${axisX}f, ${axisY}f, ${axisZ}f]}, scale: [${
+            80 * scale
+          }f, ${8 * scale}f, 1f], translation: [0f, 0f, 0f]}}\n`;
+          summonText += `summon text_display ~ ~ ~ {Tags: ["${tagPrefix}1"], line_width: 100000, text_opacity: ${opacity}, alignment: "center", background: 0, transformation: {right_rotation: {angle: 0f, axis: [0f, 0f, 1f]}, left_rotation: {angle: ${angle}f, axis: [${axisX}f, ${axisY}f, ${axisZ}f]}, scale: [${
+            80 * scale
+          }f, ${8 * scale}f, 1f], translation: [${scale}f, 0f, 0f]}}\n`;
+          summonText += `summon text_display ~ ~ ~ {Tags: ["${tagPrefix}2"], line_width: 100000, text_opacity: ${opacity}, alignment: "center", background: 0, transformation: {right_rotation: {angle: 0f, axis: [0f, 0f, 1f]}, left_rotation: {angle: ${angle}f, axis: [${axisX}f, ${axisY}f, ${axisZ}f]}, scale: [${
+            80 * scale
+          }f, ${8 * scale}f, 1f], translation: [0f, ${scale}f, 0f]}}\n`;
+          summonText += `summon text_display ~ ~ ~ {Tags: ["${tagPrefix}3"], line_width: 100000, text_opacity: ${opacity}, alignment: "center", background: 0, transformation: {right_rotation: {angle: 0f, axis: [0f, 0f, 1f]}, left_rotation: {angle: ${angle}f, axis: [${axisX}f, ${axisY}f, ${axisZ}f]}, scale: [${
+            80 * scale
+          }f, ${8 * scale}f, 1f], translation: [${scale}f, ${scale}f, 0f]}}\n`;
+        }
+
+        modifyText = `data modify entity @e[tag=image_dp_0,limit=1] text set value '${textComponents[0]}'\n`;
+        modifyText += `data modify entity @e[tag=image_dp_1,limit=1] text set value '${textComponents[1]}'\n`;
+        modifyText += `data modify entity @e[tag=image_dp_2,limit=1] text set value '${textComponents[2]}'\n`;
+        modifyText += `data modify entity @e[tag=image_dp_3,limit=1] text set value '${textComponents[3]}'\n`;
+
+        copySummonBtn.disabled = false;
+        copyModifyBtn.disabled = false;
+      };
+
+      function drawAndCreateTextComponents() {
+        const canvas = document.getElementById("canvas");
+        canvas.width = this.width;
+        canvas.height = this.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(this, 0, 0);
+
+        const imageData = ctx.getImageData(0, 0, this.width, this.height).data;
+        const hexColors = windowPixels(imageData).map(toHexColor);
+
+        let i = 0;
+        const displays = [[], [], [], []];
+
+        for (let height = 0; height < this.height; height++) {
+          for (let width = 0; width < this.width; width++) {
+            displays[(height % 2) * 2 + (width % 2)].push(hexColors[i++]);
+          }
+        }
+
+        isOddWidth = this.width % 2;
+        textComponents = displays.map((arr, index) =>
+          generateTextComponent(
+            arr,
+            (this.width >> 1) + (this.width % 2 == 1 && index % 2 == 0 ? 1 : 0)
+          )
+        );
+      }
+
+      function windowPixels(imgRgba) {
+        const arr = [];
+        for (let i = 0; i < imgRgba.length; i += 4) {
+          arr.push([
+            imgRgba[i],
+            imgRgba[i + 1],
+            imgRgba[i + 2],
+            imgRgba[i + 3],
+          ]);
+        }
+
+        return arr;
+      }
+
+      function toHexColor([r, g, b, a]) {
+        var rHex = r.toString(16);
+        var gHex = g.toString(16);
+        var bHex = b.toString(16);
+
+        if (rHex.length == 1) {
+          rHex = "0" + rHex;
+        }
+        if (gHex.length == 1) {
+          gHex = "0" + gHex;
+        }
+        if (bHex.length == 1) {
+          bHex = "0" + bHex;
+        }
+
+        return "#" + rHex + gHex + bHex;
+      }
+
+      function generateTextComponent(arr, linefeedAt) {
+        console.log(linefeedAt);
+        str = `[{"text":"","font":"uniform"}`;
+        for (let i = 0; i < arr.length; i++) {
+          str += `,{"text":"\u20d2","color":"${arr[i]}"}`;
+
+          if ((i + 1) % linefeedAt == 0 && i + 1 != arr.length) {
+            str += `,"\\\\n"`;
+          }
+        }
+        return str + "]";
+      }
+
+      function onLoadFailed() {
+        copySummonBtn.disabled = true;
+        copyModifyBtn.disabled = true;
+        alert("Invalid image file.");
+      }
+    </script>
+  </body>
+</html>
